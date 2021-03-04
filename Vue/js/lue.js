@@ -22,7 +22,8 @@ class Compiler {
     this.vm = vm;
     // 1. 将网页上的元素放到内存中
     const fragment = this.node2fragment(this.vm.$el);
-    console.log(fragment);
+    // 2. 利用指定的数据编译内存中的元素
+    this.buildTemplate(fragment);
   }
   node2fragment(app) {
     // 1. 创建一个空的文档碎片对象
@@ -36,5 +37,33 @@ class Compiler {
     }
     // 3. 返回存储了所有元素的文档碎片对象
     return newFragment;
+  }
+  buildTemplate(fragment) {
+    const nodeList = [...fragment.childNodes];
+    nodeList.forEach((node) => {
+      if (this.vm.isElement(node)) {
+        this.buildElement(node);
+        // 处理后代
+        this.buildTemplate(node);
+      } else {
+        this.buildText(node);
+      }
+    });
+  }
+  buildElement(node) {
+    const attrs = [...node.attributes];
+    attrs.forEach((attr) => {
+      const { name, value } = attr;
+      if (name.startsWith("v-")) {
+        console.log("是 vue 指令", name);
+      }
+    });
+  }
+  buildText(text) {
+    const content = text.textContent;
+    const reg = /\{\{.+?\}\}/gi;
+    if (reg.test(content)) {
+      console.log("是 {{}} 文本", content);
+    }
   }
 }
