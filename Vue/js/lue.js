@@ -11,12 +11,25 @@ const CompilerUtil = {
     });
     return val;
   },
+  setValue(vm, attr, newValue) {
+    attr.split(".").reduce((data, currentAttr, index, arr) => {
+      if (index === arr.length - 1) {
+        data[currentAttr] = newValue;
+      }
+      return data[currentAttr];
+    }, vm.$data);
+  },
   model(node, value, vm) {
     // 第二步: 在第一次渲染的时候, 就给所有的属性添加观察者
     new Watcher(vm, value, (newVal) => {
       node.value = newVal;
     });
     node.value = this.getValue(vm, value);
+
+    node.addEventListener("input", (e) => {
+      const newValue = e.target.value;
+      this.setValue(vm, value, newValue);
+    });
   },
   html(node, value, vm) {
     new Watcher(vm, value, (newVal) => {
