@@ -71,6 +71,7 @@ class Lue {
       this.$el = document.querySelector(options.el);
     }
     this.$data = options.data;
+    this.proxyData();
     this.$methods = options.methods;
     // 2.根据指定的区域和数据去编译渲染界面
     if (this.$el) {
@@ -81,6 +82,14 @@ class Lue {
   }
   isElement(node) {
     return node.nodeType === 1;
+  }
+  // 实现数据代理，将$data上的数据添加到Vue实例上
+  proxyData() {
+    for (const key in this.$data) {
+      Object.defineProperty(this, key, {
+        get: () => this.$data[key],
+      });
+    }
   }
 }
 
