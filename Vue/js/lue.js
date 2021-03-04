@@ -12,16 +12,35 @@ const CompilerUtil = {
     return val;
   },
   model(node, value, vm) {
+    // 第二步: 在第一次渲染的时候, 就给所有的属性添加观察者
+    new Watcher(vm, value, (newVal) => {
+      node.value = newVal;
+    });
     node.value = this.getValue(vm, value);
   },
   html(node, value, vm) {
+    new Watcher(vm, value, (newVal) => {
+      node.innerHTML = newVal;
+    });
     node.innerHTML = this.getValue(vm, value);
   },
   text(node, value, vm) {
+    new Watcher(vm, value, (newVal) => {
+      node.innerText = newVal;
+    });
     node.innerText = this.getValue(vm, value);
   },
   content(text, value, vm) {
-    text.textContent = this.getContent(vm, value);
+    // 外层是拿到属性名称
+    const reg = /\{\{(.+?)\}\}/gi;
+    const val = value.replace(reg, (...args) => {
+      // 内层保证数据完整性
+      new Watcher(vm, args[1], () => {
+        text.textContent = this.getContent(vm, value);
+      });
+      return this.getValue(vm, args[1]);
+    });
+    text.textContent = val;
   },
 };
 
@@ -36,7 +55,7 @@ class Lue {
     this.$data = options.data;
     // 2.根据指定的区域和数据去编译渲染界面
     if (this.$el) {
-      // 给外界传入的所有数据都添加get/set方法
+      // 第一步: 给外界传入的所有数据都添加get/set方法
       new Observer(this.$data);
       new Compiler(this);
     }
@@ -114,6 +133,8 @@ class Observer {
   defineReactive(obj, attr, value) {
     // 如果属性的取值又是一个对象, 那么也需要给这个对象的所有属性添加get/set方法
     this.observer(value);
+    // 第三步：将当前属性的所有观察者对象都放到当前属性的发布订阅对象中管理起来
+    const dep = new Dep(); // 创建当前属性的发布订阅对象
     /**
      * Object.defineProperty(obj, prop, descriptor)
      * 直接在一个对象上定义一个新属性，或者修改一个对象的现有属性， 并返回这个对象
@@ -127,16 +148,63 @@ class Observer {
      */
     Object.defineProperty(obj, attr, {
       // 当使用了getter或setter方法，不允许使用writable和value这两个属性
-      get: () => value, //当获取值的时候触发的函数
+      get: () => {
+        //当获取值的时候触发的函数
+        Dep.target && dep.addSub(Dep.target);
+        return value;
+      },
       set: (newValue) => {
         //当设置值的时候触发的函数
         if (value !== newValue) {
           // 如果给属性赋值的新值又是一个对象, 那么也需要给这个对象的所有属性添加get/set方法
           this.observer(newValue);
           value = newValue;
+          dep.notify();
           console.log("监听到数据的变化, 需要去更新UI");
         }
       },
     });
+  }
+}
+
+/**
+ * 发布订阅模式实现数据变化后更新 UI 界面
+ * 分别定义一个观察者类和发布订阅类，通过发布订阅类管理观察者类
+ * */
+
+// 观察者
+class Watcher {
+  constructor(vm, attr, cb) {
+    this.vm = vm;
+    this.attr = attr;
+    this.cb = cb;
+    this.oldValue = this.getOldValue();
+  }
+  getOldValue() {
+    // 全局变量保存当前观察者对象
+    Dep.target = this;
+    const val = CompilerUtil.getValue(this.vm, this.attr);
+    Dep.target = null;
+    return val;
+  }
+  update() {
+    const newValue = CompilerUtil.getValue(this.vm, this.attr);
+    if (newValue !== this.oldValue) {
+      this.cb(newValue, this.oldValue);
+    }
+  }
+}
+// 发布订阅
+class Dep {
+  constructor() {
+    this.subs = []; // 用于管理某个属性所有的观察者对象
+  }
+  // 订阅观察
+  addSub(watch) {
+    this.subs.push(watch);
+  }
+  // 发布订阅
+  notify() {
+    this.subs.forEach((watcher) => watcher.update());
   }
 }

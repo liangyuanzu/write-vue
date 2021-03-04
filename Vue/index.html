@@ -13,6 +13,7 @@
   <div v-html="html"></div>
   <div v-text="text"></div>
   <p>{{ age }}</p>
+  <p>{{ username }} - {{ age }}</p>
   <ul>
     <li>6</li>
     <li>6</li>
@@ -21,7 +22,7 @@
 </div>
 
 <script>
-const lvu = new Lue({
+const lue = new Lue({
   el: '#app',
   data: {
     name: {
@@ -29,12 +30,13 @@ const lvu = new Lue({
     },
     html: '<p> v-html </p>',
     text: '<div> v-text </div>',
+    username: 'Jason_liang',
     age: 22
   }
 })
 
-console.log(lvu.$el)
-console.log(lvu.$data)
+console.log(lue.$el)
+console.log(lue.$data)
 </script>
 </body>
 </html>
