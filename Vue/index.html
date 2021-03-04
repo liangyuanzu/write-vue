@@ -15,11 +15,7 @@
   <p>{{ name.first }}</p>
   <p>{{ age }}</p>
   <p>{{ username }} - {{ age }}</p>
-  <ul>
-    <li>6</li>
-    <li>6</li>
-    <li>6</li>
-  </ul>
+  <div v-on:click="onClick">点击触发事件</div>
 </div>
 
 <script>
@@ -33,7 +29,13 @@ const lue = new Lue({
     text: '<div> v-text </div>',
     username: 'Jason_liang',
     age: 22
-  }
+  },
+  methods: {
+    onClick() {
+      alert('事件触发成功!')
+      console.log(this)
+    }
+  },
 })
 
 console.log(lue.$el)

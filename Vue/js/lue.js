@@ -55,6 +55,11 @@ const CompilerUtil = {
     });
     text.textContent = val;
   },
+  on(node, value, vm, type) {
+    node.addEventListener(type, (e) => {
+      vm.$methods[value].call(vm, e);
+    });
+  },
 };
 
 class Lue {
@@ -66,6 +71,7 @@ class Lue {
       this.$el = document.querySelector(options.el);
     }
     this.$data = options.data;
+    this.$methods = options.methods;
     // 2.根据指定的区域和数据去编译渲染界面
     if (this.$el) {
       // 第一步: 给外界传入的所有数据都添加get/set方法
@@ -118,8 +124,9 @@ class Compiler {
     attrs.forEach((attr) => {
       const { name, value } = attr;
       if (name.startsWith("v-")) {
-        const [_, directive] = name.split("-");
-        CompilerUtil[directive](node, value, this.vm);
+        const [directiveName, directiveType] = name.split(":");
+        const [_, directive] = directiveName.split("-");
+        CompilerUtil[directive](node, value, this.vm, directiveType);
       }
     });
   }
