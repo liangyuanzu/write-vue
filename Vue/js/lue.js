@@ -1,8 +1,15 @@
 const CompilerUtil = {
   getValue(vm, value) {
     return value.split(".").reduce((data, currentKey) => {
-      return data[currentKey];
+      return data[currentKey.trim()];
     }, vm.$data);
+  },
+  getContent(vm, value) {
+    const reg = /\{\{(.+?)\}\}/gi;
+    const val = value.replace(reg, (...args) => {
+      return this.getValue(vm, args[1]);
+    });
+    return val;
   },
   model(node, value, vm) {
     node.value = this.getValue(vm, value);
@@ -12,6 +19,9 @@ const CompilerUtil = {
   },
   text(node, value, vm) {
     node.innerText = this.getValue(vm, value);
+  },
+  content(text, value, vm) {
+    text.textContent = this.getContent(vm, value);
   },
 };
 
@@ -83,7 +93,7 @@ class Compiler {
     const content = text.textContent;
     const reg = /\{\{.+?\}\}/gi;
     if (reg.test(content)) {
-      console.log("是 {{}} 文本", content);
+      CompilerUtil["content"](text, content, this.vm);
     }
   }
 }
