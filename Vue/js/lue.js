@@ -73,6 +73,9 @@ class Lue {
     this.$data = options.data;
     this.proxyData();
     this.$methods = options.methods;
+    this.$computed = options.computed;
+    // 将computed中的方法添加到$data
+    this.computed2data();
     // 2.根据指定的区域和数据去编译渲染界面
     if (this.$el) {
       // 第一步: 给外界传入的所有数据都添加get/set方法
@@ -88,6 +91,15 @@ class Lue {
     for (const key in this.$data) {
       Object.defineProperty(this, key, {
         get: () => this.$data[key],
+      });
+    }
+  }
+  computed2data() {
+    for (const key in this.$computed) {
+      Object.defineProperty(this.$data, key, {
+        get: () => {
+          return this.$computed[key].call(this);
+        },
       });
     }
   }

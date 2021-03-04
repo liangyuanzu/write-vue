@@ -16,6 +16,7 @@
   <p>{{ age }}</p>
   <p>{{ username }} - {{ age }}</p>
   <div v-on:click="onClick">点击触发事件</div>
+  <p>{{ getUserInfo }}</p>
 </div>
 
 <script>
@@ -29,6 +30,11 @@ const lue = new Lue({
     text: '<div> v-text </div>',
     username: 'Jason_liang',
     age: 22
+  },
+  computed: {
+    getUserInfo() {
+      return `${this.username} - ${this.age}`
+    }
   },
   methods: {
     onClick() {
