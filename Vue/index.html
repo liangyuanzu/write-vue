@@ -9,8 +9,9 @@
 </head>
 <body>
 <div id="app">
-  <input type="text" v-model="name">
-  <p>{{ name }}</p>
+  <input type="text" v-model="name.first">
+  <div v-html="html"></div>
+  <div v-text="text"></div>
   <p>{{ age }}</p>
   <ul>
     <li>6</li>
@@ -23,7 +24,11 @@
 const lvu = new Lue({
   el: '#app',
   data: {
-    name: 'Jason_liang',
+    name: {
+      first: 'Jason'
+    },
+    html: '<p> v-html </p>',
+    text: '<div> v-text </div>',
     age: 22
   }
 })

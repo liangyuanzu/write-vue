@@ -1,3 +1,20 @@
+const CompilerUtil = {
+  getValue(vm, value) {
+    return value.split(".").reduce((data, currentKey) => {
+      return data[currentKey];
+    }, vm.$data);
+  },
+  model(node, value, vm) {
+    node.value = this.getValue(vm, value);
+  },
+  html(node, value, vm) {
+    node.innerHTML = this.getValue(vm, value);
+  },
+  text(node, value, vm) {
+    node.innerText = this.getValue(vm, value);
+  },
+};
+
 class Lue {
   constructor(options) {
     // 1.保存创建时候传递过来的数据
@@ -24,6 +41,8 @@ class Compiler {
     const fragment = this.node2fragment(this.vm.$el);
     // 2. 利用指定的数据编译内存中的元素
     this.buildTemplate(fragment);
+    // 3. 将编译好的内容重新渲染到页面
+    this.vm.$el.appendChild(fragment);
   }
   node2fragment(app) {
     // 1. 创建一个空的文档碎片对象
@@ -55,7 +74,8 @@ class Compiler {
     attrs.forEach((attr) => {
       const { name, value } = attr;
       if (name.startsWith("v-")) {
-        console.log("是 vue 指令", name);
+        const [_, directive] = name.split("-");
+        CompilerUtil[directive](node, value, this.vm);
       }
     });
   }
