@@ -9,7 +9,7 @@ class LueRouter {
     this.mode = options.mode || "hash";
     this.routes = options.routes || [];
     // 提取路由信息
-    this.routersMap = this.createRoutesMap();
+    this.routesMap = this.createRoutesMap();
     // 初始化路由信息
     this.routeInfo = new LueRouterInfo();
     this.initDefault();
@@ -55,6 +55,8 @@ LueRouter.install = (Vue, options) => {
         // 根组件
         this.$router = this.$options.router;
         this.$route = this.$router.routeInfo;
+        // 双向数据绑定
+        Vue.util.defineReactive(this, "xxx", this.$router);
       } else {
         // 子组件
         this.$router = this.$parent.$router;
@@ -74,6 +76,14 @@ LueRouter.install = (Vue, options) => {
         path = "#" + path;
       }
       return <a href={path}>{this.$slots.default}</a>;
+    },
+  });
+  Vue.component("router-view", {
+    render(h) {
+      const routesMap = this._self.$router.routesMap;
+      const currentPath = this._self.$route.currentPath;
+      const currentComponent = routesMap[currentPath];
+      return h(currentComponent);
     },
   });
 };
