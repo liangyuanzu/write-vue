@@ -62,6 +62,20 @@ LueRouter.install = (Vue, options) => {
       }
     },
   });
+
+  // 注册全局组件
+  Vue.component("router-link", {
+    props: {
+      to: String,
+    },
+    render() {
+      let path = this.to;
+      if (this._self.$router.mode === "hash") {
+        path = "#" + path;
+      }
+      return <a href={path}>{this.$slots.default}</a>;
+    },
+  });
 };
 
 export default LueRouter;
