@@ -20,48 +20,48 @@ class Store {
     // this.state = options.state;
     // 将 state 变成双向绑定的数据
     Vue.util.defineReactive(this, "state", options.state);
-    this.initGetters(options);
-    this.initMutations(options);
-    this.initActions(options);
     // 收集模块信息
     this.modules = new ModuleCollection(options);
     // 安装子模块数据
     this.initModules([], this.modules.root);
   }
   initGetters(options) {
-    this.getters = {};
+    this.getters = this.getters || {};
     const newGetters = options.getters || {};
     for (const key in newGetters) {
       Object.defineProperty(this.getters, key, {
         get: () => {
-          return newGetters[key](this.state);
+          return newGetters[key](options.state);
         },
       });
     }
   }
   initMutations(options) {
-    this.mutations = {};
+    this.mutations = this.mutations || {};
     const newMutations = options.mutations || {};
     for (const key in newMutations) {
-      this.mutations[key] = (payload) => {
-        newMutations[key](this.state, payload);
-      };
+      // 不同模块可以有同名的方法
+      this.mutations[key] = this.mutations[key] || [];
+      this.mutations[key].push((payload) => {
+        newMutations[key](options.state, payload);
+      });
     }
   }
   commit = (type, payload) => {
-    this.mutations[type](payload);
+    this.mutations[type].forEach((fn) => fn(payload));
   };
   initActions(options) {
-    this.actions = {};
+    this.actions = this.actions || {};
     const newActions = options.actions || {};
     for (const key in newActions) {
-      this.actions[key] = (payload) => {
+      this.actions[key] = this.actions[key] || [];
+      this.actions[key].push((payload) => {
         newActions[key](this, payload);
-      };
+      });
     }
   }
   dispatch = (type, payload) => {
-    this.actions[type](payload);
+    this.actions[type].forEach((fn) => fn(payload));
   };
   initModules(arr, rootModule) {
     if (arr.length > 0) {
@@ -71,6 +71,10 @@ class Store {
       }, this.state);
       Vue.set(parent, arr[arr.length - 1], rootModule._state);
     }
+    // 将数据绑定到 Store 上
+    this.initGetters(rootModule._raw);
+    this.initMutations(rootModule._raw);
+    this.initActions(rootModule._raw);
     // 根模块
     for (const childrenModuleName in rootModule._children) {
       const childrenModule = rootModule._children[childrenModuleName];

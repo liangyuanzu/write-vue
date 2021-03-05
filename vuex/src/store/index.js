@@ -21,11 +21,13 @@ export default new Vuex.Store({
       state.count += num;
     },
     addAge(state, age) {
+      console.log('全局的 addAge')
       state.age += age;
     },
   },
   actions: {
     asyncAddAge({ commit }, age) {
+      console.log('全局的 asyncAddAge')
       setTimeout(() => {
         commit("addAge", age);
       }, 1000);
