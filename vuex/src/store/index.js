@@ -7,13 +7,18 @@ export default new Vuex.Store({
   state: {
     username: "Jason_liang",
     age: 22,
+    count: 0,
   },
   getters: {
     userInfo({ username, age }) {
       return `${username} - ${age}`;
     },
   },
-  mutations: {},
+  mutations: {
+    addCount(state, num) {
+      state.count += num;
+    },
+  },
   actions: {},
   modules: {},
 });

@@ -1,3 +1,5 @@
+import Vue from "vue";
+
 const install = (Vue, options) => {
   // 给每一个Vue实例都添加一个$store属性
   Vue.mixin({
@@ -15,8 +17,11 @@ const install = (Vue, options) => {
 
 class Store {
   constructor(options) {
-    this.state = options.state;
+    // this.state = options.state;
+    // 将 state 变成双向绑定的数据
+    Vue.util.defineReactive(this, "state", options.state);
     this.initGetters(options);
+    this.initMutations(options);
   }
   initGetters(options) {
     this.getters = {};
@@ -28,6 +33,18 @@ class Store {
         },
       });
     }
+  }
+  initMutations(options) {
+    this.mutations = {};
+    const newMutations = options.mutations || {};
+    for (const key in newMutations) {
+      this.mutations[key] = (payload) => {
+        newMutations[key](this.state, payload);
+      };
+    }
+  }
+  commit(type, payload) {
+    this.mutations[type](payload);
   }
 }
 
