@@ -1,5 +1,7 @@
 export default {
-  state: {},
+  state: {
+    name: "login",
+  },
   getters: {},
   mutations: {},
   actions: {},

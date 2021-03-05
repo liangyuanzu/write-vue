@@ -25,7 +25,8 @@ class Store {
     this.initActions(options);
     // 收集模块信息
     this.modules = new ModuleCollection(options);
-    console.log(this.modules);
+    // 安装子模块数据
+    this.initModules([], this.modules.root);
   }
   initGetters(options) {
     this.getters = {};
@@ -62,6 +63,20 @@ class Store {
   dispatch = (type, payload) => {
     this.actions[type](payload);
   };
+  initModules(arr, rootModule) {
+    if (arr.length > 0) {
+      // 子模块
+      const parent = arr.splice(0, arr.length - 1).reduce((state, currentKey) => {
+        return state[currentKey];
+      }, this.state);
+      Vue.set(parent, arr[arr.length - 1], rootModule._state);
+    }
+    // 根模块
+    for (const childrenModuleName in rootModule._children) {
+      const childrenModule = rootModule._children[childrenModuleName];
+      this.initModules(arr.concat(childrenModuleName), childrenModule);
+    }
+  }
 }
 
 class ModuleCollection {

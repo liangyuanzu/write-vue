@@ -5,6 +5,7 @@
     <button @click="addCount(10)">count +10</button>
     <p>age：{{ $store.state.age }}</p>
     <button @click="addAge(10)">age +10</button>
+    <p>获取到 login 模块的数据：{{ $store.state.account.login.name }}</p>
   </div>
 </template>
 
