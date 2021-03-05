@@ -23,6 +23,9 @@ class Store {
     this.initGetters(options);
     this.initMutations(options);
     this.initActions(options);
+    // 收集模块信息
+    this.modules = new ModuleCollection(options);
+    console.log(this.modules);
   }
   initGetters(options) {
     this.getters = {};
@@ -59,6 +62,36 @@ class Store {
   dispatch = (type, payload) => {
     this.actions[type](payload);
   };
+}
+
+class ModuleCollection {
+  constructor(rootModule) {
+    this.register([], rootModule);
+  }
+  register(arr, rootModule) {
+    // 1. 创建模板
+    const module = {
+      _raw: rootModule,
+      _state: rootModule.state,
+      _children: {},
+    };
+    // 2.保存模块信息
+    if (arr.length === 0) {
+      // 根模块
+      this.root = module;
+    } else {
+      // 子模块
+      const parent = arr.splice(0, arr.length - 1).reduce((root, currentKey) => {
+        return root._children[currentKey];
+      }, this.root);
+      parent._children[arr[arr.length - 1]] = module;
+    }
+    // 3.处理子模块
+    for (const childrenModuleName in rootModule.modules) {
+      const childrenModule = rootModule.modules[childrenModuleName];
+      this.register(arr.concat(childrenModuleName), childrenModule);
+    }
+  }
 }
 
 export default {

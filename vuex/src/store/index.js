@@ -1,5 +1,7 @@
 import Vue from "vue";
 import Vuex from "./luex";
+import home from "./modules/home";
+import account from "./modules/account/account";
 
 Vue.use(Vuex);
 
@@ -29,5 +31,8 @@ export default new Vuex.Store({
       }, 1000);
     },
   },
-  modules: {},
+  modules: {
+    home,
+    account,
+  },
 });
