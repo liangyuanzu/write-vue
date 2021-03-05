@@ -1,5 +1,14 @@
 <template>
   <div>
-    <h1>我是 About</h1>
+    <p>About</p>
   </div>
 </template>
+
+<script>
+export default {
+  name: "About",
+};
+</script>
+
+<style lang='scss' scoped>
+</style>

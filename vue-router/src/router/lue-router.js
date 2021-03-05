@@ -48,6 +48,20 @@ class LueRouter {
   }
 }
 
-LueRouter.install = (Vue, options) => {};
+LueRouter.install = (Vue, options) => {
+  Vue.mixin({
+    beforeCreate() {
+      if (this.$options?.router) {
+        // 根组件
+        this.$router = this.$options.router;
+        this.$route = this.$router.routeInfo;
+      } else {
+        // 子组件
+        this.$router = this.$parent.$router;
+        this.$route = this.$router.routeInfo;
+      }
+    },
+  });
+};
 
 export default LueRouter;
