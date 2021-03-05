@@ -1,5 +1,7 @@
 <template>
-  <div></div>
+  <div>
+    <p>getters 中的 username 返回 {{ $store.getters.userInfo }}</p>
+  </div>
 </template>
 
 <script>

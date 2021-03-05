@@ -15,7 +15,16 @@ const install = (Vue, options) => {
 
 class Store {
   constructor(options) {
-    this.state = options;
+    this.state = options.state;
+    this.getters = {};
+    const newGetters = options.getters || {};
+    for (const key in newGetters) {
+      Object.defineProperty(this.getters, key, {
+        get: () => {
+          return newGetters[key](this.state);
+        },
+      });
+    }
   }
 }
 
