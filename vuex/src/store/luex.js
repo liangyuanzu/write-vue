@@ -22,6 +22,7 @@ class Store {
     Vue.util.defineReactive(this, "state", options.state);
     this.initGetters(options);
     this.initMutations(options);
+    this.initActions(options);
   }
   initGetters(options) {
     this.getters = {};
@@ -43,9 +44,21 @@ class Store {
       };
     }
   }
-  commit(type, payload) {
+  commit = (type, payload) => {
     this.mutations[type](payload);
+  };
+  initActions(options) {
+    this.actions = {};
+    const newActions = options.actions || {};
+    for (const key in newActions) {
+      this.actions[key] = (payload) => {
+        newActions[key](this, payload);
+      };
+    }
   }
+  dispatch = (type, payload) => {
+    this.actions[type](payload);
+  };
 }
 
 export default {

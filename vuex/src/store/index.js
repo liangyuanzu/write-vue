@@ -18,7 +18,16 @@ export default new Vuex.Store({
     addCount(state, num) {
       state.count += num;
     },
+    addAge(state, age) {
+      state.age += age;
+    },
   },
-  actions: {},
+  actions: {
+    asyncAddAge({ commit }, age) {
+      setTimeout(() => {
+        commit("addAge", age);
+      }, 1000);
+    },
+  },
   modules: {},
 });

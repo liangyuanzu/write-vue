@@ -2,7 +2,9 @@
   <div>
     <p>getters 中的 username 返回 {{ $store.getters.userInfo }}</p>
     <p>count：{{ $store.state.count }}</p>
-    <button @click="add(10)">count +10</button>
+    <button @click="addCount(10)">count +10</button>
+    <p>age：{{ $store.state.age }}</p>
+    <button @click="addAge(10)">age +10</button>
   </div>
 </template>
 
@@ -13,8 +15,11 @@ export default {
     console.log(this.$store);
   },
   methods: {
-    add(num) {
+    addCount(num) {
       this.$store.commit("addCount", num);
+    },
+    addAge(age) {
+      this.$store.dispatch("asyncAddAge", age);
     },
   },
 };
