@@ -1,5 +1,6 @@
 #! /usr/bin/env node
 const program = require("commander");
+const path = require("path");
 const { version } = require("./const");
 const commandMap = require("./commandMap");
 
@@ -15,7 +16,8 @@ Reflect.ownKeys(commandMap).forEach((key) => {
       if (key === "*") {
         console.log("指令不存在");
       } else {
-        console.log(value.description);
+        // 处理不同的指令
+        require(path.resolve(__dirname, key))(...process.argv.slice(3));
       }
     });
 });
