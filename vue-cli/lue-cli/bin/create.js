@@ -1,15 +1,16 @@
 const axios = require("axios");
 const ora = require("ora"); // loading
 const inquirer = require("inquirer"); // 实现用户交互
-let downloadGitRepo = require("download-git-repo");
+let downloadGitRepo = require("download-git-repo"); // 下载 github 仓库
 const { promisify } = require("util");
 const path = require("path");
-let ncp = require("ncp");
+let ncp = require("ncp"); // 拷贝文件
+const shell = require("shelljs"); // 安装依赖
 const { downloadDirPath } = require("./const");
 
 downloadGitRepo = promisify(downloadGitRepo); // 回调函数转 promise
-
 ncp = promisify(ncp);
+const exec = promisify(shell.exec);
 
 const getTemplateNames = async () => {
   const { data } = await axios.get("https://api.github.com/orgs/it666-com/repos");
@@ -36,6 +37,11 @@ const downloadTemplate = async (name, tag) => {
   const destPath = `${downloadDirPath}\\${name}`;
   await downloadGitRepo(url, destPath);
   return destPath;
+};
+
+const installDependencies = async (name) => {
+  shell.cd(name);
+  await exec("npm install");
 };
 
 module.exports = async (projectName) => {
@@ -71,4 +77,7 @@ module.exports = async (projectName) => {
 
   // 6.拷贝模板
   await waitLoading("copying template", ncp)(destPath, path.resolve(projectName));
+
+  // 7.安装相关依赖
+  await waitLoading("install dependencies", installDependencies)(projectName);
 };
