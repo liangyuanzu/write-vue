@@ -12,12 +12,17 @@ const getTemplateTags = async (name) => {
   return data;
 };
 
+const waitLoading = (message, fn) => async (...args) => {
+  const spinner = ora(message).start();
+  const data = await fn(...args);
+  spinner.succeed(`${message} successfully`);
+  return data;
+};
+
 module.exports = async (projectName) => {
   // 1.拉取所有模板名称
-  const spinner = ora("Loading").start("downloading template names");
-  const names = await getTemplateNames();
+  const names = await waitLoading("downloading template names", getTemplateNames)();
   const templateNames = names.map((i) => i.name);
-  spinner.succeed("download template names successfully");
 
   // 2.选择指定模板名称
   const { currentTemplateName } = await inquirer.prompt({
@@ -28,10 +33,8 @@ module.exports = async (projectName) => {
   });
 
   // 3.获取版本号
-  spinner.start("downloading template tags");
-  const tags = await getTemplateTags(currentTemplateName);
+  const tags = await waitLoading("downloading template tags", getTemplateTags)(currentTemplateName);
   const templateTags = tags.map((i) => i.name);
-  spinner.succeed("download template tags successfully");
 
   // 4.选择版本
   const { currentTemplateTag } = await inquirer.prompt({
