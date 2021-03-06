@@ -1,6 +1,10 @@
 const axios = require("axios");
 const ora = require("ora"); // loading
 const inquirer = require("inquirer"); // 实现用户交互
+let downloadGitRepo = require("download-git-repo");
+const { promisify } = require("util");
+downloadGitRepo = promisify(downloadGitRepo); // 回调函数转 promise
+const { downloadDirPath } = require("./const");
 
 const getTemplateNames = async () => {
   const { data } = await axios.get("https://api.github.com/orgs/it666-com/repos");
@@ -17,6 +21,16 @@ const waitLoading = (message, fn) => async (...args) => {
   const data = await fn(...args);
   spinner.succeed(`${message} successfully`);
   return data;
+};
+
+const downloadTemplate = async (name, tag) => {
+  let url = `it666-com/${name}`;
+  if (tag) {
+    url += `#${tag}`;
+  }
+  const destPath = `${downloadDirPath}\\${name}`;
+  await downloadGitRepo(url, destPath);
+  return destPath;
 };
 
 module.exports = async (projectName) => {
@@ -43,5 +57,11 @@ module.exports = async (projectName) => {
     choices: templateTags,
     message: "请选择要使用哪个版本来创建项目",
   });
-  console.log(currentTemplateName, currentTemplateTag);
+
+  // 5.下载模板
+  const destPath = await waitLoading("downloading template", downloadTemplate)(
+    currentTemplateName,
+    currentTemplateTag
+  );
+  console.log(destPath);
 };
