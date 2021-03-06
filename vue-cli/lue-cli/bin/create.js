@@ -4,14 +4,18 @@ const inquirer = require("inquirer"); // 实现用户交互
 let downloadGitRepo = require("download-git-repo"); // 下载 github 仓库
 const { promisify } = require("util");
 const path = require("path");
+const fs = require("fs");
 let ncp = require("ncp"); // 拷贝文件
 const shell = require("shelljs"); // 安装依赖
 const chalk = require("chalk"); // 给提示信息加上颜色
+const Metalsmith = require("metalsmith"); // 编译文件
+let { render } = require("consolidate").ejs; // 编译模板
 const { downloadDirPath } = require("./const");
 
 downloadGitRepo = promisify(downloadGitRepo); // 回调函数转 promise
 ncp = promisify(ncp);
 const exec = promisify(shell.exec);
+render = promisify(render);
 
 const getTemplateNames = async () => {
   const { data } = await axios.get("https://api.github.com/orgs/it666-com/repos");
@@ -79,8 +83,48 @@ module.exports = async (projectName) => {
     currentTemplateTag
   );
 
-  // 6.拷贝模板
-  await waitLoading("copying template", ncp)(sourcePath, destPath);
+  const askPath = path.join(sourcePath, "ask.js");
+  if (!fs.existsSync(askPath)) {
+    // 6.拷贝模板
+    await waitLoading("copying template", ncp)(sourcePath, destPath);
+  } else {
+    await new Promise((resolve, reject) => {
+      Metalsmith(__dirname)
+        .source(sourcePath) // 需要遍历的目录
+        .destination(destPath) // 编译完的文件存放地址
+        .use(async (files, metal, done) => {
+          // 1.让用户填写配置信息
+          const config = require(askPath);
+          const result = await inquirer.prompt(config);
+          const meta = metal.metadata();
+          Object.assign(meta, result);
+          done();
+        })
+        .use((files, metal, done) => {
+          // 2.根据用户填写的配置信息编译模板
+          const result = metal.metadata();
+          Reflect.ownKeys(files).forEach(async (filePath) => {
+            if (filePath.includes(".js") || filePath.includes(".json")) {
+              // 获取当前文件的内容
+              const fileContent = files[filePath].contents.toString();
+              // 判断当前文件的内容是否需要编译
+              if (fileContent.includes("<%")) {
+                const resultContent = await render(fileContent, result);
+                files[filePath].contents = Buffer.from(resultContent);
+              }
+            }
+          });
+          done();
+        })
+        .build((err) => {
+          if (err) {
+            reject(err);
+          } else {
+            resolve();
+          }
+        });
+    });
+  }
 
   // 7.安装相关依赖
   console.log(chalk.green("✨  Initializing dependencies..."));
