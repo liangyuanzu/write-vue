@@ -10,6 +10,9 @@ const shell = require("shelljs"); // 安装依赖
 const chalk = require("chalk"); // 给提示信息加上颜色
 const Metalsmith = require("metalsmith"); // 编译文件
 let { render } = require("consolidate").ejs; // 编译模板
+const updateNotifier = require("update-notifier"); // 检查更新
+const pkg = require("../package.json");
+const boxen = require("boxen"); // 画提示图
 const { downloadDirPath } = require("./const");
 
 downloadGitRepo = promisify(downloadGitRepo); // 回调函数转 promise
@@ -49,7 +52,39 @@ const installDependencies = async (name) => {
   await exec("npm install");
 };
 
+const checkVersion = () => {
+  const notifier = updateNotifier({
+    pkg,
+    updateCheckInterval: 0, // 一执行就检查更新
+  });
+
+  const { update } = notifier.update;
+  if (update) {
+    const messages = [];
+    messages.push(`${chalk.bgYellow.black(" WARNI: ")}  Nue-Cli is not latest.\n`);
+    messages.push(
+      chalk.grey("current ") +
+        chalk.grey(update.current) +
+        chalk.grey(" → ") +
+        chalk.grey("latest ") +
+        chalk.green(update.latest)
+    );
+    messages.push(`${chalk.grey("Up to date ")} npm i -g ${pkg.name}`);
+
+    console.log(
+      boxen(messages.join("\n"), {
+        padding: 2,
+        margin: 2,
+        align: "center",
+        borderColor: "yellow",
+        borderStyle: "round",
+      })
+    );
+  }
+};
+
 module.exports = async (projectName) => {
+  checkVersion(); // 检查更新
   const destPath = path.resolve(projectName);
   console.log(chalk.green("✨  Creating project in ") + chalk.blue(`${destPath}`));
   // 1.拉取所有模板名称
