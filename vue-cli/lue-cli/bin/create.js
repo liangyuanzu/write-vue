@@ -6,6 +6,7 @@ const { promisify } = require("util");
 const path = require("path");
 let ncp = require("ncp"); // 拷贝文件
 const shell = require("shelljs"); // 安装依赖
+const chalk = require("chalk"); // 给提示信息加上颜色
 const { downloadDirPath } = require("./const");
 
 downloadGitRepo = promisify(downloadGitRepo); // 回调函数转 promise
@@ -45,6 +46,8 @@ const installDependencies = async (name) => {
 };
 
 module.exports = async (projectName) => {
+  const destPath = path.resolve(projectName);
+  console.log(chalk.green("✨  Creating project in ") + chalk.blue(`${destPath}`));
   // 1.拉取所有模板名称
   const names = await waitLoading("downloading template names", getTemplateNames)();
   const templateNames = names.map((i) => i.name);
@@ -70,14 +73,22 @@ module.exports = async (projectName) => {
   });
 
   // 5.下载模板
-  const destPath = await waitLoading("downloading template", downloadTemplate)(
+  console.log(chalk.green("✨  Initializing git repository..."));
+  const sourcePath = await waitLoading("downloading template", downloadTemplate)(
     currentTemplateName,
     currentTemplateTag
   );
 
   // 6.拷贝模板
-  await waitLoading("copying template", ncp)(destPath, path.resolve(projectName));
+  await waitLoading("copying template", ncp)(sourcePath, destPath);
 
   // 7.安装相关依赖
+  console.log(chalk.green("✨  Initializing dependencies..."));
   await waitLoading("install dependencies", installDependencies)(projectName);
+
+  // 8.显示创建成功之后的提示信息
+  console.log(chalk.green(" Successfully created project ") + chalk.blue(`${projectName}.`));
+  console.log(chalk.green(" Get started with the following commands: \n"));
+  console.log(chalk.magenta(`$ cd ${projectName}`));
+  console.log(chalk.magenta("$ npm run serve"));
 };
