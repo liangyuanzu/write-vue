@@ -3,8 +3,13 @@ const ora = require("ora"); // loading
 const inquirer = require("inquirer"); // 实现用户交互
 let downloadGitRepo = require("download-git-repo");
 const { promisify } = require("util");
-downloadGitRepo = promisify(downloadGitRepo); // 回调函数转 promise
+const path = require("path");
+let ncp = require("ncp");
 const { downloadDirPath } = require("./const");
+
+downloadGitRepo = promisify(downloadGitRepo); // 回调函数转 promise
+
+ncp = promisify(ncp);
 
 const getTemplateNames = async () => {
   const { data } = await axios.get("https://api.github.com/orgs/it666-com/repos");
@@ -63,5 +68,7 @@ module.exports = async (projectName) => {
     currentTemplateName,
     currentTemplateTag
   );
-  console.log(destPath);
+
+  // 6.拷贝模板
+  await waitLoading("copying template", ncp)(destPath, path.resolve(projectName));
 };
